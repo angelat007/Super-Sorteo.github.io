@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="CSS/compartirWinners.css">
+    <link rel="shortcut icon" href="MEDIA/Medio-logo.webp" type="image/x-icon">
+    <title>Compartir Ganadores - Super Plaza Venezuela Sorteo</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Anuncia los ganadores</h1>
+        <p class="subtitle">¡Resultados de los ganadores de tu sorteo!</p>
+        
+        <div class="content-wrapper">
+            <div class="certificates-section">
+                <div class="certificate-item">
+                    <h3>
+                        <i class="fa-regular fa-image"></i>
+                        Certificado para Story (.jpg)
+                    </h3>
+                    <div class="loading-spinner" id="loadingSpinner"></div>
+                    <div class="preview-container" id="imagePreview"></div>
+                </div>
+                
+                <div class="certificate-item">
+                    <h3>
+                        <i class="fa-solid fa-video"></i>
+                        Animación para Story (.mp4)
+                    </h3>
+                    <button class="btn-download">
+                        <i class="fa-solid fa-download"></i>
+                        Descargar video
+                    </button>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>
+                    <i class="fa-solid fa-palette"></i>
+                    Personalizar imagen
+                </h3>
+                <div class="config-row">
+                    <button class="file-upload-btn">
+                        <i class="fa-solid fa-upload"></i>
+                        Subir fondo personalizado
+                        <input type="file" id="backgroundUpload" accept="image/*">
+                    </button>
+                    <button class="btn-randomize" id="randomBtn">
+                        <i class="fa-solid fa-shuffle"></i>
+                        Fondo aleatorio
+                    </button>
+                </div>
+            </div>
+        </div><br><br><br>
+
+        <!-- Nueva sección de detalles del sorteo -->
+        <div class="sorteo-details">
+            <h2>Detalles del sorteo</h2>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Fecha</span>
+                    <span class="detail-value" id="sorteoFecha">-------</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Tipo</span>
+                    <div class="detail-value">
+                        <span class="detail-badge">
+                            <i class="fa-solid fa-list"></i>
+                            <span id="sorteoTipo">Listado de Nombres</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="winners-section">
+                <div class="winners-title">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Ganadores</span>
+                </div>
+                <ul class="winner-list" id="winnersList">
+                    <li class="winner-item">
+                        <span class="winner-number">1.</span>
+                        <span class="winner-name">nadie</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="hiddenCanvas" width="1080" height="1920"></canvas>
+
+    <div id="imageModal" class="modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+<script src="JS/compartirWinners.js"></script>
+</body>
+</html>
