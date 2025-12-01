@@ -1,7 +1,11 @@
 //Code de la aplicación de sorteo
 class SorteoApp {
     constructor() {
+        this.currentWinnerIndex = 0;
+        this.totalWinners = 1;
+        this.totalAlternates = 0; // 👈 NUEVO
         this.participants = [];
+        this.allParticipants = []; // 👈 NUEVO: Guardamos la lista original
         this.winners = [];
         this.alternates = [];
         this.prizes = [];
@@ -67,6 +71,7 @@ class SorteoApp {
         // Iniciar sorteo
         const startSorteoBtn = document.getElementById('startSorteoBtn');
         if (startSorteoBtn) {
+            document.getElementById('addGanador').classList.add('hidden');
             startSorteoBtn.addEventListener('click', () => this.startSorteo());
         }
 
@@ -82,6 +87,12 @@ class SorteoApp {
             newSorteoBtn.addEventListener('click', () => this.resetSorteo());
         }
 
+        // 👇 NUEVO: Botón "Próximo participante"
+        const proxParticipantBtn = document.getElementById('proxParticipant');
+        if (proxParticipantBtn) {
+            proxParticipantBtn.addEventListener('click', () => this.continuarSorteo());
+        }
+
         // Reabrir configuración
         const openConfigBtn = document.getElementById('openConfig');
         if (openConfigBtn) {
@@ -94,6 +105,23 @@ class SorteoApp {
             exportResults.addEventListener('click', () => this.exportResults());
         }
 
+        // 👇 NUEVO: Añadir ganador
+        const addGanadorBtn = document.getElementById('addGanador');
+        if (addGanadorBtn) {
+            addGanadorBtn.addEventListener('click', () => {
+                this.showPremioNuevoModal();
+            });
+        }
+
+        // Modal añadir premio al nuevo ganador
+        document.getElementById('premioNuevoCancelar')?.addEventListener('click', () => {
+            document.getElementById('premioNuevoModal').classList.remove('show');
+        });
+
+        document.getElementById('premioNuevoAceptar')?.addEventListener('click', () => {
+            this.confirmarPremioNuevo();
+        });
+
         // Actualizar participantes cuando cambie el textarea
         const participantsInput = document.getElementById('participantsInput');
         if (participantsInput) {
@@ -101,6 +129,25 @@ class SorteoApp {
                 this.parseParticipantsFromTextarea(participantsInput.value);
             });
         }
+    }
+
+    // Confirmar premio para el nuevo ganador
+    showPremioNuevoModal() {
+        document.getElementById('premioNuevoInput').value = "";
+        document.getElementById('premioNuevoModal').classList.add('show');
+    }
+
+    // Confirmar premio para el nuevo ganador
+    confirmarPremioNuevo() {
+        const premio = document.getElementById('premioNuevoInput').value.trim();
+
+        document.getElementById('premioNuevoModal').classList.remove('show');
+
+        // Guardar premio en lista / si no coloca premio se muestra nada / vacío
+        this.prizes.push(premio !== "" ? premio : "");
+
+        // Añadir un nuevo ganador
+        this.realAddGanador();
     }
 
     // Función para manejar la carga de archivos
@@ -114,7 +161,6 @@ class SorteoApp {
             this.parseParticipants(content, file.name);
             document.getElementById('participantsInput').value = this.participants.map(p => p.name).join('\n');
         };
-        // Especificar UTF-8 para evitar problemas con caracteres especiales como Ñ
         reader.readAsText(file, 'UTF-8');
     }
 
@@ -154,11 +200,10 @@ class SorteoApp {
 
     // Función para mostrar el modal de configuración
     showConfigModal() {
-        // Primero parseamos los participantes del textarea
         const textareaContent = document.getElementById('participantsInput').value;
         this.parseParticipantsFromTextarea(textareaContent);
 
-        console.log('Participantes encontrados:', this.participants.length); // Debug
+        console.log('Participantes encontrados:', this.participants.length);
 
         if (this.participants.length === 0) {
             alert('Debes ingresar al menos un participante');
@@ -183,12 +228,11 @@ class SorteoApp {
         const tempParticipants = [];
         const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
 
-        console.log('Líneas procesando:', lines); // Debug
+        console.log('Líneas procesando:', lines);
 
         lines.forEach((line, index) => {
             const trimmedLine = line.trim();
             if (trimmedLine) {
-                // Simplificamos: si tiene tab o coma, separamos, si no, usamos toda la línea
                 let displayName;
                 if (trimmedLine.includes('\t')) {
                     const parts = trimmedLine.split('\t', 2);
@@ -201,7 +245,6 @@ class SorteoApp {
                     const nombre = (parts[1] || '').trim().replace(/(^"|"$)/g, '');
                     displayName = nombre ? `${codigo}\t${nombre}` : codigo;
                 } else {
-                    // Línea simple, sin separadores
                     displayName = trimmedLine;
                 }
 
@@ -215,7 +258,7 @@ class SorteoApp {
         });
 
         this.participants = tempParticipants;
-        console.log('Participantes parseados:', this.participants); // Debug
+        console.log('Participantes parseados:', this.participants);
     }
 
     // Función para ocultar el modal de configuración
@@ -233,8 +276,11 @@ class SorteoApp {
             return;
         }
 
+        this.totalWinners = winnersCount;
+        this.totalAlternates = alternatesCount; // 👈 NUEVO
+        this.currentWinnerIndex = 0;
         this.duration = (parseInt(document.getElementById('duration').value) || 5) * 1000;
-        this.animationType = document.getElementById('animationType').value; // 👈 guardar tipo de animación
+        this.animationType = document.getElementById('animationType').value;
 
         const modalTitle = document.getElementById('modalTitle');
         this.sorteoTitle = modalTitle ? modalTitle.value || 'Mi Sorteo' : 'Mi Sorteo';
@@ -243,10 +289,14 @@ class SorteoApp {
         const prizesText = prizesInput ? prizesInput.value : '';
         this.prizes = prizesText.split('\n').filter(p => p.trim()).slice(0, winnersCount);
 
+        // 👇 NUEVO: Guardamos copia de participantes originales
+        this.allParticipants = [...this.participants];
+        this.winners = [];
+        this.alternates = [];
+
         this.hideConfigModal();
         this.showSorteoPage();
     }
-
 
     // Función para mostrar la página del sorteo
     showSorteoPage() {
@@ -284,54 +334,73 @@ class SorteoApp {
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            const logoContainer = document.getElementById('logoContainer');
+            const logoContainer = document.getElementById('logo-cargado');
             logoContainer.innerHTML = `<img src="${e.target.result}" alt="Logo personalizado">`;
         };
         reader.readAsDataURL(file);
     }
 
-    // Función para iniciar el sorteo
+    // Iniciar sorteo
     startSorteo() {
         console.log('Iniciando sorteo con', this.participants.length, 'participantes');
-
-        if (this.participants.length === 0) {
-            alert('No hay participantes para sortear');
-            return;
-        }
-
         this.isRunning = true;
-        this.winners = [];
-        this.alternates = [];
         this.currentNames = [...this.participants];
 
         // Ocultar/mostrar botones
         document.getElementById('startSorteoBtn').classList.add('hidden');
+        document.getElementById('addGanador').classList.remove('hidden');
         document.getElementById('stopSorteoBtn').classList.remove('hidden');
         document.getElementById('progressBar').classList.remove('hidden');
-        document.getElementById('resultados').classList.add('hidden');
+        document.getElementById('proxParticipant').classList.add('hidden');
+        document.getElementById('newSorteoBtn').classList.add('hidden');
+        document.getElementById('openConfig').classList.add('hidden');
 
         // Ver qué animación está seleccionada
         const animationType = document.getElementById('animationType').value;
 
         if (animationType === 'ruleta') {
-            this.runRuletaAnimation(); // llama a la ruleta de la fortuna
+            this.runRuletaAnimation(); // Ruleta de la fortuna
         } else if (animationType === 'regresiva') {
-            this.runCountdownAnimation(); // llama a la cuenta regresiva
+            this.runCountdownAnimation(); // Cuenta regresiva
         } else {
-            this.runSorteoAnimation(); // Nombres giratorios (por defecto)
+            this.runSorteoAnimation(); // Nombres giratorios
         }
     }
 
+    // Continuar con el siguiente ganador
+    continuarSorteo() {
+        // Ocultar botón "Próximo participante"
+        document.getElementById('proxParticipant').classList.add('hidden');
 
-    //funcion de cuenta regresiva
+        // Mostrar barra de progreso nuevamente
+        document.getElementById('progressBar').classList.remove('hidden');
+
+        // Resetear barra
+        document.getElementById('progressFill').style.width = '0%';
+
+        // Iniciar animación para el siguiente ganador
+        this.isRunning = true;
+        this.currentNames = [...this.participants];
+
+        const animationType = document.getElementById('animationType').value;
+
+        if (animationType === 'ruleta') {
+            this.runRuletaAnimation();
+        } else if (animationType === 'regresiva') {
+            this.runCountdownAnimation();
+        } else {
+            this.runSorteoAnimation();
+        }
+    }
+
+    // Función para ejecutar la animación Cuenta Regresiva
     runCountdownAnimation() {
         const display = document.getElementById('sorteoDisplay');
         const progressFill = document.getElementById('progressFill');
 
-        const totalSeconds = Math.max(1, this.duration / 1000); // Convertimos a segundos, mínimo 1
+        const totalSeconds = Math.max(1, this.duration / 1000);
         let remaining = Math.ceil(totalSeconds);
 
-        // Mostrar el primer número
         display.innerHTML = `<div class="cuenta-regresiva">${remaining}</div>`;
         progressFill.style.width = "0%";
 
@@ -341,7 +410,6 @@ class SorteoApp {
             const elapsed = (Date.now() - startTime) / 1000;
             remaining = Math.ceil(totalSeconds - elapsed);
 
-            // Actualizar barra de progreso
             const progress = Math.min((elapsed / totalSeconds) * 100, 100);
             progressFill.style.width = `${progress}%`;
 
@@ -352,10 +420,10 @@ class SorteoApp {
                 progressFill.style.width = "100%";
                 this.finishSorteo();
             }
-        }, 1000); // Actualiza 5 veces por segundo para suavizar la barra
+        }, 1000);
     }
 
-    // Función para ejecutar la animación del sorteo
+    // Función para ejecutar la animación Nombres Giratorios
     runSorteoAnimation() {
         const display = document.getElementById('sorteoDisplay');
         const progressFill = document.getElementById('progressFill');
@@ -376,13 +444,12 @@ class SorteoApp {
         }, 100);
     }
 
-    //funcion para ejecutar la animacion de la ruleta de la fortuna
+    // Función para ejecutar la animación Ruleta de la Fortuna
     runRuletaAnimation() {
         const display = document.getElementById('sorteoDisplay');
         const progressFill = document.getElementById('progressFill');
         progressFill.style.width = '0%';
 
-        // Limpiar y crear estructura
         display.innerHTML = `
         <div class="ruleta-container">
             <canvas id="fortuneWheel" width="450" height="450"></canvas>
@@ -394,18 +461,14 @@ class SorteoApp {
         const ctx = canvas.getContext('2d');
         const radius = 210;
 
-        // 🔹 Elegir 20 participantes aleatorios (o menos si hay pocos)
         const total = this.participants.length;
         const numToShow = Math.min(20, total);
         const shuffled = [...this.participants].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, numToShow);
 
-        // 🔹 Calcular ángulo por segmento
         const arcSize = (2 * Math.PI) / numToShow;
         const colors = ['#ffcc00', '#ff6666', '#66ccff', '#66ff66', '#ff99cc', '#ccccff', '#ff9966'];
 
-
-        // 🔹 Dibujar ruleta (solo nombres)
         const drawWheel = (rotation = 0) => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
@@ -421,7 +484,6 @@ class SorteoApp {
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.fill();
 
-                // 🏷 Mostrar SOLO el nombre (sin código)
                 const parts = selected[i].name.split('\t');
                 const nombre = parts[1] ? parts[1].trim() : selected[i].name.trim();
 
@@ -437,9 +499,8 @@ class SorteoApp {
             ctx.restore();
         };
 
-        // 🔹 Animación del giro
         let start = null;
-        const totalRotation = (Math.random() * 8 + 8) * Math.PI; // vueltas aleatorias
+        const totalRotation = (Math.random() * 8 + 8) * Math.PI;
         const duration = this.duration;
         const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -456,48 +517,111 @@ class SorteoApp {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // 🎯 Calcular ganador
                 const finalRotation = rotation % (2 * Math.PI);
                 const winnerIndex = numToShow - Math.floor(finalRotation / arcSize) - 1;
                 const winner = selected[winnerIndex >= numToShow ? winnerIndex - numToShow : winnerIndex];
 
-                this.winners = [winner];
-                this.finishSorteo();
+                // Pass the selected winner to finishSorteo to avoid double-selection and keep consistency
+                this.finishSorteo(winner);
             }
         };
 
         requestAnimationFrame(animate);
     }
 
-
-
-    // Función para finalizar el sorteo
-    finishSorteo() {
+    // Finalizar sorteo (UN ganador + N suplentes si corresponde)
+    finishSorteo(winnerFromWheel) {
         clearInterval(this.sorteoInterval);
         this.isRunning = false;
 
-        const winnersCount = parseInt(document.getElementById('winnersCount').value) || 1;
-        const alternatesCount = parseInt(document.getElementById('alternatesCount').value) || 0;
+        // Build a list of available participants excluding already selected winners and alternates
+        const alreadySelectedIds = new Set([
+            ...this.winners.map(w => w.id),
+            ...this.alternates.map(a => a.id)
+        ]);
 
-        const shuffled = [...this.participants].sort(() => Math.random() - 0.5);
-        this.winners = shuffled.slice(0, winnersCount);
-        this.alternates = shuffled.slice(winnersCount, winnersCount + alternatesCount);
+        const available = this.participants.filter(p => !alreadySelectedIds.has(p.id));
 
+        if (available.length === 0 && !winnerFromWheel) {
+            // No available participants
+            const displayEmpty = document.getElementById('sorteoDisplay');
+            displayEmpty.innerHTML = `<div class="ganador">No hay participantes disponibles</div>`;
+            document.getElementById('stopSorteoBtn').classList.add('hidden');
+            document.getElementById('progressBar').classList.add('hidden');
+            // Mostrar Añadir ganador
+            document.getElementById('addGanador').classList.remove('hidden');
+
+            return;
+        }
+
+        // Determine the winner: use provided one (from ruleta) or pick randomly from available
+        let winner = winnerFromWheel;
+        if (!winner) {
+            const shuffled = [...available].sort(() => Math.random() - 0.5);
+            winner = shuffled[0];
+        }
+
+        // Añadir ganador si no está ya en la lista
+        if (!this.winners.some(w => w.id === winner.id)) {
+            this.winners.push(winner);
+        }
+
+        // 👇 Calcular cuántos suplentes quedan por asignar
+        const suplentesAsignados = this.alternates.length;
+        const suplentesRestantes = Math.max(0, this.totalAlternates - suplentesAsignados);
+
+        // 👇 Si aún quedan suplentes por asignar, agregar hasta suplentesRestantes
+        if (suplentesRestantes > 0) {
+            // elegir suplentes desde los disponibles que no sean el ganador ni ya suplentes
+            const remainingCandidates = this.participants.filter(p => p.id !== winner.id && !this.alternates.some(a => a.id === p.id) && !this.winners.some(w => w.id === p.id));
+            for (let i = 0; i < suplentesRestantes && i < remainingCandidates.length; i++) {
+                const suplente = remainingCandidates[i];
+                if (!this.alternates.some(a => a.id === suplente.id)) {
+                    this.alternates.push(suplente);
+                }
+            }
+        }
+
+        // 👇 Eliminar el ganador y los suplentes asignados de la lista de participantes
+        const usedIds = new Set([winner.id, ...this.alternates.map(a => a.id)]);
+        this.participants = this.participants.filter(p => !usedIds.has(p.id));
+
+        // Mostrar ganador en pantalla
         const display = document.getElementById('sorteoDisplay');
-        display.innerHTML = `<div class="ganador">${this.winners[0].name}</div>`;
+        display.innerHTML = `<div class="ganador">${winner.name}</div>`;
 
         document.getElementById('stopSorteoBtn').classList.add('hidden');
-        document.getElementById('newSorteoBtn').classList.remove('hidden');
-        document.getElementById('openConfig').classList.remove('hidden');
         document.getElementById('progressBar').classList.add('hidden');
 
+        // 👇 Incrementar índice
+        this.currentWinnerIndex++;
+
+        // 👇 Mostrar resultados parciales
         setTimeout(() => {
             this.showResults();
-        }, 3000);
+
+            // ¿Hay más ganadores pendientes?
+            if (this.currentWinnerIndex < this.totalWinners) {
+                // Mostrar botón "Próximo participante"
+                document.getElementById('proxParticipant').classList.remove('hidden');
+
+                // Ocultar añadir ganador
+                document.getElementById('addGanador').classList.add('hidden');
+
+            } else {
+                // Ya terminamos todos los ganadores
+                document.getElementById('newSorteoBtn').classList.remove('hidden');
+                document.getElementById('openConfig').classList.remove('hidden');
+                document.getElementById('exportResults').classList.remove('hidden');
+                document.getElementById('addGanador').classList.remove('hidden');
+            }
+        }, 2000);
     }
 
     // Función para detener el sorteo manualmente
     stopSorteo() {
+        document.getElementById('addGanador').classList.add('hidden');
+
         if (this.sorteoInterval) {
             clearInterval(this.sorteoInterval);
             this.isRunning = false;
@@ -505,12 +629,12 @@ class SorteoApp {
         }
     }
 
-    // Función para mostrar los resultados
+    // Mostrar resultados actualizados
     showResults() {
         const resultsList = document.getElementById('resultadosList');
         let html = '';
 
-        // En showResults
+        // Mostrar todos los ganadores hasta ahora
         this.winners.forEach((winner, index) => {
             const prize = this.prizes[index] ? `<div class="premio-tag">${this.prizes[index]}</div>` : "";
             html += `
@@ -524,7 +648,7 @@ class SorteoApp {
     `;
         });
 
-
+        // Mostrar suplentes
         this.alternates.forEach((alternate, index) => {
             html += `
                 <div class="resultado-item resultado-suplente fade-in">
@@ -541,11 +665,38 @@ class SorteoApp {
         document.getElementById('resultados').classList.remove('hidden');
     }
 
+    // Añadir más ganadores
+    addGanador() {
+        // Ahora solo abre el modal
+        this.showPremioNuevoModal();
+    }
+
+    // Añadir más ganadores (lógica interna)
+    realAddGanador() {
+        if (this.participants.length === 0) {
+            alert('No quedan participantes disponibles');
+            return;
+        }
+
+        this.totalWinners++;
+
+        document.getElementById('exportResults').classList.add('hidden');
+        document.getElementById('addGanador').classList.add('hidden');
+        document.getElementById('newSorteoBtn').classList.add('hidden');
+        document.getElementById('openConfig').classList.add('hidden');
+
+        this.continuarSorteo();
+    }
+
     // Función para reiniciar el sorteo
     resetSorteo() {
         this.winners = [];
         this.alternates = [];
         this.isRunning = false;
+        this.currentWinnerIndex = 0;
+
+        // Restaurar participantes originales
+        this.participants = [...this.allParticipants];
 
         clearInterval(this.sorteoInterval);
 
@@ -555,6 +706,9 @@ class SorteoApp {
         document.getElementById('openConfig').classList.add('hidden');
         document.getElementById('progressBar').classList.add('hidden');
         document.getElementById('resultados').classList.add('hidden');
+        document.getElementById('proxParticipant').classList.add('hidden');
+        document.getElementById('exportResults').classList.add('hidden');
+        document.getElementById('addGanador').classList.add('hidden');
 
         const display = document.getElementById('sorteoDisplay');
         display.innerHTML = `
@@ -574,7 +728,7 @@ class SorteoApp {
         let content = `RESULTADOS DEL SORTEO: ${this.sorteoTitle}\n`;
         content += '=' + '='.repeat(this.sorteoTitle.length + 25) + '\n\n';
         content += `Fecha: ${new Date().toLocaleString()}\n`;
-        content += `Total participantes: ${this.participants.length}\n\n`;
+        content += `Total participantes: ${this.allParticipants.length}\n\n`;
 
         content += 'GANADORES:\n';
         content += '-----------\n';
@@ -586,7 +740,6 @@ class SorteoApp {
             }
         });
 
-
         if (this.alternates.length > 0) {
             content += '\nSUPLENTES:\n';
             content += '-----------\n';
@@ -597,11 +750,10 @@ class SorteoApp {
 
         content += '\n\nTODOS LOS PARTICIPANTES:\n';
         content += '------------------------\n';
-        this.participants.forEach((participant, index) => {
+        this.allParticipants.forEach((participant, index) => {
             content += `${index + 1}. ${participant.name}\n`;
         });
 
-        // Crear el blob con codificación UTF-8 explícita
         const blob = new Blob(['\uFEFF' + content], {
             type: 'text/plain;charset=utf-8-sig'
         });
@@ -634,7 +786,7 @@ function changeValue(inputId, delta) {
     input.value = newValue;
 }
 
-// Función para alternar el filtro de duplicados
+// Alternar filtro de duplicados
 function toggleDuplicates() {
     const toggle = document.getElementById('duplicateToggle');
     if (!toggle) return;
@@ -645,7 +797,7 @@ function toggleDuplicates() {
     }
 }
 
-// Función para abrir el modal de premios
+// Funciones para el modal de premios
 function openPrizesModal() {
     const prizesModal = document.getElementById('prizesModal');
     if (prizesModal) {
@@ -653,7 +805,7 @@ function openPrizesModal() {
     }
 }
 
-// Función para cerrar el modal de premios
+// Cerrar modal de premios
 function closePrizesModal() {
     const prizesModal = document.getElementById('prizesModal');
     if (prizesModal) {
@@ -661,7 +813,7 @@ function closePrizesModal() {
     }
 }
 
-// Función para guardar premios desde el modal
+// Guardar premios desde el modal
 function savePrizes() {
     closePrizesModal();
 }
@@ -677,7 +829,6 @@ function importarArchivo() {
         const archivo = event.target.files[0];
         if (!archivo) return;
 
-        // Mostrar mensaje de carga
         mensaje.className = "cargando mostrar";
         mensaje.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Se esta importando el archivo...';
 
@@ -686,12 +837,8 @@ function importarArchivo() {
             const contenido = e.target.result;
             const lineas = contenido.split(/\r?\n/).filter(linea => linea.trim() !== "");
 
-            // Mostrar mensaje de éxito
             mensaje.className = "exito mostrar";
             mensaje.innerHTML = `<i class="fa-solid fa-circle-check"></i> Se importaron <strong>${lineas.length.toLocaleString()}</strong> participantes.`;
-
-            // Guardar si deseas
-            // localStorage.setItem("listaParticipantes", JSON.stringify(lineas));
         };
 
         reader.onerror = function () {

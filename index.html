@@ -162,14 +162,16 @@
                     <input type="number" id="alternatesCount" value="0" min="0">
                     <div class="number-spinners">
                         <button type="button" class="spinner-btn" onclick="changeValue('alternatesCount', 1)">▲</button>
-                        <button type="button" class="spinner-btn" onclick="changeValue('alternatesCount', -1)">▼</button>
+                        <button type="button" class="spinner-btn"
+                            onclick="changeValue('alternatesCount', -1)">▼</button>
                     </div>
                 </div>
             </div>
 
             <div class="modal-field">
                 <label><i class="fa-solid fa-gift"></i> Premios</label>
-                <button class="define-btn" onclick="openPrizesModal()"><i class="fa-solid fa-pen-to-square"></i> Definir</button>
+                <button class="define-btn" onclick="openPrizesModal()"><i class="fa-solid fa-pen-to-square"></i>
+                    Definir</button>
             </div>
 
             <div class="modal-field toggle-field">
@@ -183,7 +185,7 @@
                 <label><i class="fa-solid fa-wand-magic"></i> Animación</label>
                 <div class="dropdown-field">
                     <select id="animationType">
-                        <option value="gitatorio">Nombres Giratorios</option>
+                        <option value="giratorio">Nombres Giratorios</option>
                         <option value="regresiva">Cuenta Regresiva</option>
                         <option value="ruleta">Ruleta de la Fortuna</option>
                     </select>
@@ -212,8 +214,10 @@
             </div>
 
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="cancelConfig"><i class="fa-solid fa-xmark"></i> Cancelar</button>
-                <button class="modal-btn modal-btn-confirm" id="confirmConfig"><i class="fa-solid fa-check"></i> Confirmar</button>
+                <button class="modal-btn modal-btn-cancel" id="cancelConfig"><i class="fa-solid fa-xmark"></i>
+                    Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmConfig"><i class="fa-solid fa-check"></i>
+                    Confirmar</button>
             </div>
         </div>
     </div>
@@ -226,7 +230,8 @@
             <div class="sorteo-header">
                 <img id="logo-cargado" class="logo" src="MEDIA/Log-super-plaza-venezuela_2.webp">
                 <h1 class="sorteo-title" id="sorteoTitleDisplay"><i class="fa-solid fa-gift"></i> Mi Sorteo</h1>
-                <p class="participants-count" id="participantsCount"><i class="fa-solid fa-users"></i> 0 participantes cargados</p>
+                <p class="participants-count" id="participantsCount"><i class="fa-solid fa-users"></i> 0 participantes
+                    cargados</p>
             </div>
 
             <div class="sorteo-display" id="sorteoDisplay">
@@ -244,14 +249,20 @@
                 <button class="btn btn-large btn-success" id="startSorteoBtn"><i class="fa-solid fa-play"></i> Comenzar Sorteo</button>
                 <button class="btn btn-large btn-danger hidden" id="stopSorteoBtn"><i class="fa-solid fa-stop"></i> Detener</button>
                 <button class="btn btn-large hidden" id="newSorteoBtn"><i class="fa-solid fa-rotate-right"></i> Sortear</button><br>
-                <button class="btn btn-large hidden" id="openConfig"><i class="fa-solid fa-gear"></i> Reconfigurar Sorteo</button> <!--Abre la configuracion para reconfigurar mas ganadores o otros premios, etc...-->
+                <button id="proxParticipant" class="btn hidden"> <i class="fa-brands fa-stack-overflow"></i> Proximo participante</button><br>
+                <button class="btn" id="addGanador"><i class="fa-solid fa-plus"></i> Añadir ganador</button>
+                <!--Anado un gandor y me deje hacer el sorteo-->
             </div>
 
             <div class="resultados hidden" id="resultados">
                 <h2><i class="fa-solid fa-trophy"></i> Resultados del Sorteo</h2>
                 <div id="resultadosList"></div>
                 <div style="text-align: center; margin-top: 30px;">
-                    <button class="btn" id="exportResults"><i class="fa-solid fa-download"></i> Exportar Resultados</button>
+                    <button class="btn btn-large hidden" id="openConfig"><i class="fa-solid fa-gear"></i> Reconfigurar
+                        Sorteo</button>
+                    <!--Abre la configuracion para reconfigurar mas ganadores o otros premios, etc...-->
+                    <button class="btn" id="exportResults"><i class="fa-solid fa-download"></i> Exportar
+                        Resultados</button>
                 </div>
             </div>
         </div>
@@ -275,8 +286,24 @@
         </div>
     </div>
 
-    <!--scips-->
+    <!-- Modal flotante para añadir premio a un nuevo ganador -->
+    <div id="premioNuevoModal" class="modal-premio">
+        <div class="modal-premio-content">
+            <h3>Premio para el nuevo ganador</h3>
+            <p>Escribe el premio que quieres asignar al ganador que se añadirá.</p><br>
+
+            <input type="text" id="premioNuevoInput" placeholder="Ej: Tarjeta de regalo de $50">
+
+            <div class="modal-premio-buttons">
+                <button id="premioNuevoCancelar">Cancelar</button>
+                <button id="premioNuevoAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!--scrips-->
     <script src="JS/script.js"></script>
+    <!--Dark mode-->
     <script>
         const toggleBtn = document.getElementById("darkModeToggle");
         const body = document.body;
@@ -300,7 +327,9 @@
         toggleBtn.addEventListener("click", () => {
             const currentTheme = body.getAttribute("data-theme");
 
+            console.log("Tema actual:", currentTheme);
             if (currentTheme === "light") {
+
                 body.setAttribute("data-theme", "dark");
 
                 // cambiar ícono a sol

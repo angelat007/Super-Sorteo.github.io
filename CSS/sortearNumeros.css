@@ -1,0 +1,339 @@
+ * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+ }
+
+ body {
+     font-family: 'Arial', sans-serif;
+     min-height: 100vh;
+     display: flex;
+     flex-direction: column;
+     overflow-x: hidden;
+ }
+
+ .header {
+     padding: 20px;
+     text-align: center;
+     background: rgba(255, 255, 255, 0.1);
+     backdrop-filter: blur(10px);
+     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+ }
+
+ .header img {
+     max-width: 200px;
+     height: auto;
+     border-radius: 10px;
+ }
+
+ /*texto redirigente*/
+ .tooltip-logo {
+     position: relative;
+     display: inline-block;
+ }
+
+ .tooltip-text {
+     position: absolute;
+     top: 50%;
+     right: -300px;
+     /* Posición hacia la derecha */
+     transform: translate(-100%, -50%);
+     color: rgb(38, 38, 38);
+     padding: 6px 10px;
+     border-radius: 6px;
+     font-size: 14px;
+     white-space: nowrap;
+     opacity: 0;
+     visibility: hidden;
+     transition: opacity 0.3s ease, visibility 0.3s ease;
+     z-index: 1000;
+ }
+
+ .tooltip-logo:hover .tooltip-text {
+     opacity: 1;
+     visibility: visible;
+ }
+
+ @keyframes aparecer {
+     from {
+         transform: translateX(-50%) translateY(20px);
+         opacity: 0;
+     }
+
+     to {
+         transform: translateX(-50%) translateY(0);
+         opacity: 1;
+     }
+ }
+
+ #resultado {
+    max-width: 1000px;
+ }
+
+ .containerResultado {
+     flex: 1;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     padding: 40px 20px;
+     text-align: center;
+ }
+
+ h3 {
+     color: rgb(56, 56, 56);
+     font-size: 2.5rem;
+     margin-bottom: 40px;
+     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+     opacity: 0;
+     animation: fadeInUp 1s ease-out forwards;
+ }
+
+ /* Estilo y animación para h1 (título principal) */
+ .titulo-animado {
+     color: #333;
+     font-size: 3.5rem;
+     margin-bottom: 20px;
+     font-weight: bold;
+     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+     opacity: 0;
+     animation: fadeInUp 1s ease-out forwards;
+     animation-delay: 0s;
+ }
+
+ /* h3 más pequeño y con animación posterior */
+ .subtitulo-animado {
+     color: rgb(56, 56, 56);
+     font-size: 2rem;
+     margin-bottom: 40px;
+     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+     opacity: 0;
+     animation: fadeInUp 1s ease-out forwards;
+     animation-delay: 0.6s;
+ }
+
+ .numeros-container {
+     display: flex;
+     gap: 20px;
+     flex-wrap: wrap;
+     justify-content: center;
+     margin-bottom: 40px;
+ }
+
+ .numero-card {
+     background: rgba(255, 255, 255, 0.95);
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+     backdrop-filter: blur(10px);
+     border-radius: 15px;
+     padding: 20px;
+     min-width: 120px;
+     height: 120px;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     border: none;
+     position: relative;
+     overflow: hidden;
+     opacity: 0;
+     transform: translateY(50px) scale(0.8);
+     animation: slideInUp 0.4s ease-out forwards;
+ }
+
+ .numero-card:nth-child(1) {
+     animation-delay: 0.2s;
+ }
+
+ .numero-card:nth-child(2) {
+     animation-delay: 0.4s;
+ }
+
+ .numero-card:nth-child(3) {
+     animation-delay: 0.6s;
+ }
+
+ .numero-card:nth-child(4) {
+     animation-delay: 0.8s;
+ }
+
+ .numero-card:nth-child(5) {
+     animation-delay: 0.9s;
+ }
+
+ .numero-index {
+     font-size: 12px;
+     color: #666;
+     margin-bottom: 5px;
+     font-weight: bold;
+ }
+
+ .numero-value {
+     font-size: 2.5rem;
+     font-weight: bold;
+     color: #333;
+     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+ }
+
+ .numero-card::before {
+     content: '';
+     position: absolute;
+     top: 0;
+     left: -100%;
+     width: 100%;
+     height: 100%;
+     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+     transition: left 0.5s;
+ }
+
+ .numero-card:hover::before {
+     left: 100%;
+ }
+
+ .numero-card:hover {
+     transform: scale(1.05);
+     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+     cursor: pointer;
+ }
+
+ .volver {
+     text-align: center;
+     padding: 20px;
+ }
+
+ .volver a {
+     background: linear-gradient(45deg, #0e8547, #0B6938);
+     color: white;
+     text-decoration: none;
+     padding: 15px 30px;
+     border-radius: 8px;
+     font-weight: bold;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+     transition: all 0.3s ease;
+     display: inline-block;
+ }
+
+ .volver a:hover {
+     background: linear-gradient(45deg, #0B6938, #0e8547);
+     transform: translateY(-2px);
+     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+ }
+
+ .no-results {
+     color: white;
+     font-size: 1.5rem;
+     background: rgba(255, 255, 255, 0.1);
+     padding: 30px;
+     border-radius: 15px;
+     backdrop-filter: blur(10px);
+     border: 1px solid rgba(255, 255, 255, 0.2);
+ }
+
+ /* Confetti Animation */
+ .confetti {
+     position: fixed;
+     width: 10px;
+     height: 10px;
+     background: #f0f0f0;
+     animation: confetti-fall 3s linear infinite;
+ }
+
+ .confetti:nth-child(odd) {
+     background: #ff6b6b;
+     animation-delay: 0.5s;
+ }
+
+ .confetti:nth-child(even) {
+     background: #4ecdc4;
+ }
+
+ .confetti:nth-child(3n) {
+     background: #45b7d1;
+     animation-delay: 1s;
+ }
+
+ .confetti:nth-child(4n) {
+     background: #f9ca24;
+     animation-delay: 1.5s;
+ }
+
+ .confetti:nth-child(5n) {
+     background: #6c5ce7;
+     animation-delay: 2s;
+ }
+
+ @keyframes confetti-fall {
+     0% {
+         transform: translateY(-100vh) rotate(0deg);
+         opacity: 1;
+     }
+
+     100% {
+         transform: translateY(100vh) rotate(360deg);
+         opacity: 0;
+     }
+ }
+
+ @keyframes fadeInUp {
+     from {
+         opacity: 0;
+         transform: translateY(30px);
+     }
+
+     to {
+         opacity: 1;
+         transform: translateY(0);
+     }
+ }
+
+ @keyframes slideInUp {
+     from {
+         opacity: 0;
+         transform: translateY(50px) scale(0.8);
+     }
+
+     to {
+         opacity: 1;
+         transform: translateY(0) scale(1);
+     }
+ }
+
+ /* Responsive Design */
+ @media (max-width: 768px) {
+     .numero-card {
+         min-width: 100px;
+         height: 100px;
+         padding: 15px;
+     }
+
+     .numero-value {
+         font-size: 2rem;
+     }
+
+     h3 {
+         font-size: 2rem;
+     }
+
+     .numeros-container {
+         gap: 15px;
+     }
+ }
+
+ @media (max-width: 480px) {
+     .numero-card {
+         min-width: 80px;
+         height: 80px;
+         padding: 10px;
+     }
+
+     .numero-value {
+         font-size: 1.5rem;
+     }
+
+     h3 {
+         font-size: 1.5rem;
+     }
+
+     .numeros-container {
+         gap: 10px;
+     }
+ }
